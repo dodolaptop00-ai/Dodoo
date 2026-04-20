@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Spaceman Pro - Full History</title>
+    <style>
+        body { margin: 0; background: #0b0e11; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', sans-serif; color: white; }
+        
+        /* Baris Riwayat */
+        #history-bar { width: 850px; background: #181a20; padding: 10px; display: flex; gap: 8px; overflow-x: hidden; border: 2px solid #2d333b; border-bottom: none; border-radius: 10px 10px 0 0; box-sizing: border-box; min-height: 45px; }
+        .hist-item { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #2b2f36; }
+        .low { color: #ff4d4d; } /* Di bawah 2x */
+        .high { color: #2ebd85; } /* Di atas 2x */
+
+        #game-container { position: relative; width: 850px; height: 380px; border: 2px solid #2d333b; background: radial-gradient(circle, #1a1d23, #000); overflow: hidden; }
+        canvas { display: block; }
+        #multiplier { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #f0b90b; font-size: 70px; font-weight: bold; z-index: 5; }
+        
+        #betting-panel { width: 850px; background: #181a20; padding: 20px; box-sizing: border-box; display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; align-items: center; border: 2px solid #2d333b; border-top: none; border-radius: 0 0 10px 10px; }
+        .info-box { display: flex; flex-direction: column; }
+        .label { color: #848e9c; font-size: 11px; margin-bottom: 5px; }
+        .value { font-size: 18px; font-weight: bold; }
+        
+        input { background: #2b2f36; border: 1px solid #474d57; color: #f0b90b; padding: 10px; border-radius: 5px; width: 100%; outline: none; box-sizing: border-box; font-weight: bold; }
+        button { width: 100%; padding: 15px; cursor: pointer; border: none; font-weight: bold; border-radius: 5px; font-size: 16px; }
+        #btn-bet { background: #f0b90b; color: black; }
+        #btn-bet:disabled { background: #474d57; color: #848e9c; }
+        #btn-cashout { background: #2ebd85; color: white; display: none; }
+        
+        #status { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); color: #ff4d4d; font-size: 30px; font-weight: bold; display: none; z-index: 10; }
+        #next-round { position: absolute; bottom: 20px; right: 20px; color: #f0b90b; font-weight: bold; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="history-bar">
+    <!-- Riwayat angka akan muncul di sini -->
+</div>
+
+<div id="game-container">
+    <div id="status">CRASHED!</div>
+    <div id="multiplier">1.00x</div>
+    <div id="next-round">Lanjut dalam: <span id="timer">5</span>s</div>
+    <canvas id="crashCanvas"></canvas>
+</div>
+
+<div id="betting-panel">
+    <div class="info-box">
+        <span class="label">SALDO (IDR)</span>
+        <span id="balance" class="value">1,000,000</span>
+        <span class="label" style="margin-top:10px;">POTENSI MENANG</span>
+        <span id="potential-win" class="value" style="color: #2ebd85;">0</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="info-box">
+            <span class="label">BET (Min 2.000)</span>
+            <input type="number" id="bet-amount" value="2000" min="2000">
+        </div>
+        <div class="info-box">
+            <span class="label">AUTO CASH OUT (x)</span>
+            <input type="number" id="auto-cash-val" value="2.00" step="0.1">
+        </div>
+        <div style="grid-column: span 2;">
+            <button id="btn-bet" onclick="prepareBet()">PASANG TARUHAN</button>
+            <button id="btn-cashout" onclick="cashOut()">CASH OUT</button>
+        </div>
+    </div>
+
+    <div class="info-box" style="text-align: right;">
+        <span class="label">STATUS</span>
+        <span id="game-info" class="value" style="color: #848e9c;">Standby</span>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('crashCanvas');
+    const ctx = canvas.getContext('2d');
+    const multEl = document.getElementById('multiplier');
+    const statusEl = document.getElementById('status');
+    const balanceEl = document.getElementById('balance');
+    const potWinEl = document.getElementById('potential-win');
+    const gameInfoEl = document.getElementById('game-info');
+    const btnBet = document.getElementById('btn-bet');
+    const btnCashout = document.getElementById('btn-cashout');
+    const nextRoundEl = document.getElementById('next-round');
+    const timerEl = document.getElementById('timer');
+    const historyBar = document.getElementById('history-bar');
+
+    canvas.width = 850; canvas.height = 380;
+
+    let balance = 1000000;
+    let multiplier = 1.00;
+    let isCrashed = false;
+    let betNextRound = false;
+    let isUserInRound = false;
+    let hasCashedOut = false;
+    let currentBetAmt = 0;
+    let crashPoint = 0;
+    let time = 0;
+    let path = [];
+    let offsetX = 0, offsetY = 0;
+
+    function addHistory(val) {
+        const span = document.createElement('span');
+        span.className = 'hist-item ' + (val < 2 ? 'low' : 'high');
+        span.innerText = val.toFixed(2) + 'x';
+        historyBar.prepend(span); // Tambah di paling depan
+        if (historyBar.children.length > 12) historyBar.removeChild(historyBar.lastChild);
+    }
+
+    function generateCrashPoint() {
+        let r = Math.random();
+        if (r < 0.08) return 1.00;
+        if (r < 0.70) return (Math.random() * 1.8) + 1.1;
+        if (r < 0.95) return (Math.random() * 500) + 3;
+        return (Math.random() * 40) + 13;
+    }
+
+    function prepareBet() {
+        let amt = parseInt(document.getElementById('bet-amount').value);
+        if (amt < 2000 || amt > balance) return alert("Cek Saldo/Minimal Bet!");
+        betNextRound = true;
+        btnBet.disabled = true;
+        btnBet.innerText = "DIPASANG...";
+    }
+
+    function startCycle() {
+        isCrashed = false;
+        multiplier = 1.00;
+        time = 0; path = []; offsetX = 0; offsetY = 0;
+        crashPoint = generateCrashPoint();
+        statusEl.style.display = 'none';
+        multEl.style.color = '#f0b90b';
+        nextRoundEl.style.display = 'none';
+
+        if (betNextRound) {
+            let amt = parseInt(document.getElementById('bet-amount').value);
+            balance -= amt;
+            currentBetAmt = amt;
+            isUserInRound = true;
+            hasCashedOut = false;
+            betNextRound = false;
+            btnBet.style.display = 'none';
+            btnCashout.style.display = 'block';
+            btnCashout.disabled = false;
+            btnCashout.innerText = "CASH OUT";
+            gameInfoEl.innerText = "IKUT TERBANG";
+            gameInfoEl.style.color = "#f0b90b";
+            balanceEl.innerText = balance.toLocaleString('id-ID');
+        } else {
+            gameInfoEl.innerText = "MENONTON";
+            gameInfoEl.style.color = "#848e9c";
+        }
+        animate();
+    }
+
+    function cashOut() {
+        if (!isUserInRound || hasCashedOut || isCrashed) return;
+        let win = Math.floor(currentBetAmt * multiplier);
+        balance += win;
+        hasCashedOut = true;
+        btnCashout.disabled = true;
+        btnCashout.innerText = "WIN!";
+        balanceEl.innerText = balance.toLocaleString('id-ID');
+    }
+
+    function triggerCrash() {
+        isCrashed = true;
+        statusEl.style.display = 'block';
+        multEl.style.color = '#ff4d4d';
+        addHistory(multiplier);
+        
+        btnBet.style.display = 'block';
+        btnBet.disabled = false;
+        btnBet.innerText = "PASANG TARUHAN";
+        btnCashout.style.display = 'none';
+        potWinEl.innerText = "0";
+        isUserInRound = false;
+
+        let count = 5;
+        nextRoundEl.style.display = 'block';
+        timerEl.innerText = count;
+        let timer = setInterval(() => {
+            count--;
+            timerEl.innerText = count;
+            if (count <= 0) { clearInterval(timer); startCycle(); }
+        }, 1000);
+    }
+
+    function animate() {
+        if (isCrashed) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        time += 1;
+        multiplier += 0.003 + (time * 0.000005);
+        multEl.innerText = multiplier.toFixed(2) + 'x';
+
+        // Auto Cash
+        let autoVal = parseFloat(document.getElementById('auto-cash-val').value);
+        if (isUserInRound && !hasCashedOut && multiplier >= autoVal) cashOut();
+        if (isUserInRound && !hasCashedOut) potWinEl.innerText = Math.floor(currentBetAmt * multiplier).toLocaleString('id-ID');
+
+        if (multiplier >= crashPoint) { triggerCrash(); return; }
+
+        let posX = 100 + (time * 0.6);
+        let posY = 300 - (Math.pow(time, 1.1) * 0.5);
+        if (posX > 400) offsetX = posX - 400;
+        if (posY < 150) offsetY = posY - 150;
+
+        ctx.save();
+        ctx.translate(-offsetX, -offsetY);
+        // Grid Bintang
+        ctx.fillStyle = "#333";
+        for(let i=0; i<80; i++) ctx.fillRect((i*190)%2000, (i*210)%2000, 2, 2);
+        // Jalur
+        ctx.strokeStyle = '#f0b90b'; ctx.lineWidth = 3;
+        path.push({x: posX, y: posY});
+        ctx.beginPath();
+        path.forEach((p, i) => { i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y); });
+        ctx.stroke();
+        // Spaceman
+        ctx.fillStyle = 'white'; ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff';
+        ctx.beginPath(); ctx.arc(posX, posY, 10, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+
+        requestAnimationFrame(animate);
+    }
+
+    // Awal Game
+    balanceEl.innerText = balance.toLocaleString('id-ID');
+    startCycle();
+</script>
+</body>
+</html>
