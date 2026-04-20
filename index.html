@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DodooStore - Pembayaran QRIS</title>
+    <style>
+        :root { --primary: #25d366; --orange: #e67e22; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 450px; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header b { font-size: 24px; color: var(--orange); }
+        
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #555; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        
+        .method-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .method-box div { border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 10px; font-weight: bold; }
+        .method-box div.active { border-color: var(--blue); background: #ebf5fb; color: var(--blue); }
+
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; background: var(--primary); font-size: 16px; margin-bottom: 10px; }
+        
+        #payment-modal { border: 2px solid #ddd; padding: 15px; background: #fff; margin-top: 20px; text-align: center; border-radius: 10px; display: none; }
+        .qris-img { width: 200px; height: 200px; margin: 10px auto; background: #eee; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; }
+        
+        .btn-direct { background: #008cff !important; display: none; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <b>🛍️ DodooStore</b><br>
+        <small>Top-Up Game & Bayar Instan</small>
+    </div>
+
+    <!-- NOMOR ADMIN WHATSAPP -->
+    <input type="hidden" id="admin-phone" value="6285860612529">
+
+    <label>ID Player:</label>
+    <input type="text" id="player-id" placeholder="ID + (Server)">
+
+    <label>Pilih Game:</label>
+    <select id="game-select" onchange="updateOptions()">
+        <option value="Free Fire">Free Fire 💎</option>
+        <option value="Mobile Legends">Mobile Legends ⚡</option>
+        <option value="PUBG Mobile">PUBG Mobile 💵</option>
+        <option value="Genshin Impact">Genshin Impact ✨</option>
+        <option value="Valorant">Valorant 🔫</option>
+        <option value="CODM">Call of Duty Mobile 💣</option>
+        <option value="eFootball">eFootball Coins ⚽</option>
+    </select>
+
+    <label>Pilih Nominal:</label>
+    <select id="package-select"></select>
+
+    <label>Metode Pembayaran:</label>
+    <div class="method-box" id="pay-methods">
+        <div class="active" onclick="selectMethod(this, 'QRIS ALL PAYMENT')">QRIS</div>
+        <div onclick="selectMethod(this, 'DANA')">DANA</div>
+        <div onclick="selectMethod(this, 'GOPAY')">GOPAY</div>
+    </div>
+    <input type="hidden" id="selected-method" value="QRIS ALL PAYMENT">
+
+    <button onclick="buyProcess()">KONFIRMASI PESANAN</button>
+    
+    <div id="payment-modal">
+        <h4 style="margin:0; color:var(--orange);">Selesaikan Pembayaran</h4>
+        <p id="pay-instr" style="font-size: 12px; color: #666;"></p>
+        
+        <button id="pay-direct-btn" class="btn-direct" onclick="openEwallet()">KLIK TRANSFER OTOMATIS</button>
+
+        <div class="qris-img" id="qris-area">
+            <img src="https://qrserver.com" alt="QRIS" style="width:100%">
+        </div>
+        
+        <div style="font-size: 14px; margin-bottom: 10px;">
+            Total Bayar: <b id="pay-total" style="color:var(--orange);"></b>
+        </div>
+
+        <button onclick="sendToWA()" style="background: var(--blue);">SUDAH BAYAR (KIRIM BUKTI)</button>
+        <small style="font-size: 10px; color: #999; display: block;">Setelah bayar, kirim bukti ke WhatsApp admin</small>
+    </div>
+</div>
+
+<script>
+    const diamondData = {
+        "Free Fire": [
+            {n:"50 Diamond", p:8000}, {n:"70 Diamond", p:10000}, {n:"140 Diamond", p:20000}, {n:"355 Diamond", p:50000}, {n:"720 Diamond", p:100000}, {n:"1440 Diamond", p:200000}
+        ],
+        "Mobile Legends": [
+            {n:"85 Diamonds", p:23000}, {n:"170 Diamonds", p:45000}, {n:"296 Diamonds", p:80000}, {n:"568 Diamonds", p:150000}, {n:"875 Diamonds", p:235000}, {n:"Weekly Pass", p:30000}
+        ],
+        "PUBG Mobile": [
+            {n:"60 UC", p:15000}, {n:"325 UC", p:75000}, {n:"660 UC", p:150000}, {n:"1800 UC", p:360000}
+        ],
+        "Genshin Impact": [
+            {n:"Blessing", p:79000}, {n:"300 Crystals", p:79000}, {n:"980 Crystals", p:245000}, {n:"1980 Crystals", p:475000}
+        ],
+        "Valorant": [
+            {n:"625 Points", p:75000}, {n:"1125 Points", p:135000}, {n:"1650 Points", p:195000}, {n:"3400 Points", p:390000}
+        ],
+        "CODM": [
+            {n:"31 CP", p:5000}, {n:"63 CP", p:10000}, {n:"128 CP", p:20000}, {n:"321 CP", p:50000}, {n:"645 CP", p:100000}
+        ],
+        "eFootball": [
+            {n:"100 Coins", p:15000}, {n:"550 Coins", p:79000}, {n:"1040 Coins", p:149000}, {n:"2130 Coins", p:299000}
+        ]
+    };
+
+    let currentOrder = null;
+
+    function updateOptions() {
+        const game = document.getElementById('game-select').value;
+        const select = document.getElementById('package-select');
+        select.innerHTML = diamondData[game].map(d => `<option value="${d.p}">${d.n} - Rp ${d.p.toLocaleString()}</option>`).join('');
+    }
+
+    function selectMethod(el, val) {
+        document.querySelectorAll('.method-box div').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('selected-method').value = val;
+    }
+
+    function buyProcess() {
+        const id = document.getElementById('player-id').value;
+        if (!id) return alert("ID Player wajib diisi!");
+
+        const pkg = document.getElementById('package-select');
+        const price = parseInt(pkg.value); 
+        const method = document.getElementById('selected-method').value;
+
+        currentOrder = { 
+            id, game: document.getElementById('game-select').value, item: pkg.options[pkg.selectedIndex].text.split(' - '), 
+            price, method, time: new Date().toLocaleString() 
+        };
+
+        const modal = document.getElementById('payment-modal');
+        const qrisArea = document.getElementById('qris-area');
+        const directBtn = document.getElementById('pay-direct-btn');
+        const instrText = document.getElementById('pay-instr');
+
+        modal.style.display = 'block';
+        document.getElementById('pay-total').innerText = "Rp " + price.toLocaleString();
+        
+        if(method === 'QRIS ALL PAYMENT') {
+            qrisArea.style.display = 'block';
+            directBtn.style.display = 'none';
+            instrText.innerText = "Silahkan scan QRIS untuk menyelesaikan pembayaran.";
+        } else {
+            qrisArea.style.display = 'none';
+            directBtn.style.display = 'block';
+            instrText.innerText = "Klik tombol di bawah untuk bayar ke nomor 085860612529";
+        }
+
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function openEwallet() {
+        const adminPhone = "085860612529";
+        const amount = currentOrder.price;
+        const method = currentOrder.method;
+
+        // Salin nomor otomatis agar user tidak ribet
+        navigator.clipboard.writeText(adminPhone);
+        
+        if(method === 'DANA') {
+            alert("Nomor HP telah disalin otomatis. Kamu akan diarahkan ke aplikasi DANA.");
+            window.location.href = `https://dana.id/0858606112529&amount=${amount}`;
+        } else if(method === 'GOPAY') {
+            alert("Nomor HP telah disalin otomatis. Silahkan buka aplikasi Gojek, pilih Bayar, lalu tempel nomor admin.");
+            window.location.href = "gojek://gopay/transfer"; // Deep link untuk buka menu transfer GoPay
+        }
+    }
+
+    function sendToWA() {
+        const adminPhone = document.getElementById('admin-phone').value;
+        const o = currentOrder;
+
+        const pesanWA = `*KONFIRMASI BAYAR - DODOOSTORE*%0A` +
+                        `--------------------------%0A` +
+                        `*Game:* ${o.game}%0A` +
+                        `*Item:* ${o.item}%0A` +
+                        `*ID Player:* ${o.id}%0A` +
+                        `*Metode:* ${o.method}%0A` +
+                        `*Total:* Rp ${o.price.toLocaleString()}%0A` +
+                        `--------------------------%0A` +
+                        `_Saya sudah bayar, mohon segera diproses!_`;
+
+        window.open(`https://wa.me/6285860612529?text=${pesanWA}`, '_blank');
+    }
+
+    updateOptions();
+</script>
+
+</body>
+</html>
