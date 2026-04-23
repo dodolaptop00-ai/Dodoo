@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MADYA DEPOK - PPLG ABSENSI 🚀</title>
-    <!-- Library Kamera Paling Stabil -->
     <script src="https://rawgit.com"></script>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
@@ -14,7 +13,10 @@
             --dark-bg: #030712;
             --glass: rgba(255, 255, 255, 0.05);
             --success: #10b981;
+            --warning: #f59e0b;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -24,153 +26,176 @@
             margin: 0;
             display: flex;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            padding: 15px;
-            box-sizing: border-box;
+            padding: 20px;
         }
 
+        /* Container Simetris */
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 450px;
             background: var(--glass);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 30px;
-            padding: 25px;
-            box-shadow: 0 0 40px rgba(0, 242, 254, 0.2);
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.15);
             text-align: center;
-            animation: glow 3s infinite alternate;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        @keyframes glow {
-            from { box-shadow: 0 0 20px rgba(0, 242, 254, 0.1); }
-            to { box-shadow: 0 0 40px rgba(0, 242, 254, 0.3); }
-        }
-
-        h1 { font-family: 'Orbitron', sans-serif; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0; }
-        .subtitle { font-size: 0.8rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 20px; text-transform: uppercase; }
+        h1 { font-family: 'Orbitron', sans-serif; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0; font-size: 1.8rem; }
+        .subtitle { font-size: 0.75rem; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
 
         input, select {
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.5);
-            color: white; outline: none; font-family: 'Poppins';
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            outline: none;
+            text-align: center; /* Membuat teks input simetris */
         }
 
         button {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
             background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-            color: #000; font-weight: 800; cursor: pointer; transition: 0.3s;
-            margin-top: 10px; text-transform: uppercase;
+            color: #000;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
         }
 
         button:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--neon-blue); }
 
-        /* DESIGN KAMERA MENYALA */
         #preview {
-            width: 100%; 
-            border-radius: 20px; 
-            border: 2px solid var(--neon-blue); 
-            background: #000; 
-            margin: 15px 0;
+            width: 100%;
+            aspect-ratio: 1 / 1; /* Membuat area kamera kotak sempurna */
+            object-fit: cover;
+            border-radius: 20px;
+            border: 2px solid var(--neon-blue);
+            background: #000;
             box-shadow: 0 0 15px var(--neon-blue);
         }
 
         .history-box {
-            text-align: left; margin-top: 20px; background: rgba(0,0,0,0.4);
-            padding: 15px; border-radius: 15px; max-height: 200px; overflow-y: auto;
+            text-align: left;
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 15px;
+            max-height: 200px;
+            overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; float: right; }
-        .late { background: var(--neon-pink); text-shadow: 0 0 5px white; }
-        .on-time { background: var(--success); text-shadow: 0 0 5px white; }
+        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: bold; float: right; }
+        .late { background: var(--neon-pink); }
+        .on-time { background: var(--success); }
+        .permission { background: var(--warning); color: black; }
+        .alpa { background: #64748b; }
 
         .admin-btn {
             position: fixed; bottom: 20px; right: 20px; background: rgba(0, 242, 254, 0.1);
-            width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center;
+            width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center;
             align-items: center; cursor: pointer; border: 1px solid var(--neon-blue); z-index: 1000;
-            box-shadow: 0 0 10px var(--neon-blue);
         }
 
         .hidden { display: none !important; }
         
-        .admin-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; 
-            margin-bottom: 8px; font-size: 0.8rem; border-left: 3px solid var(--neon-blue);
+        .admin-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--neon-blue);
+            text-align: left;
         }
+
+        .flex-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- SECTION 1: LOGIN -->
+        <!-- LOGIN -->
         <div id="loginSection">
             <h1>MADYA DEPOK🏫</h1>
-            <div class="subtitle">PPLG ABSEN SYSTEM 💻</div>
+            <div class="subtitle">PPLG SYSTEM ABSEN</div>
             <input type="text" id="username" placeholder="Username Siswa">
             <input type="password" id="password" placeholder="Password">
-            <button onclick="handleLogin()">MASUK ✨</button>
+            <button onclick="handleLogin()">LOGIN ✨</button>
         </div>
 
-        <!-- SECTION 2: STUDENT DASHBOARD -->
+        <!-- DASHBOARD SISWA -->
         <div id="studentSection" class="hidden">
-            <h2 id="welcomeMsg" style="color: var(--neon-blue);">Halo! 👋</h2>
-            <div id="realtimeClock" style="font-size: 1.8rem; font-weight: bold; color: white; text-shadow: 0 0 10px var(--neon-blue);">00:00:00</div>
+            <h2 id="welcomeMsg" style="color: var(--neon-blue); margin:0;">Halo! 👋</h2>
+            <div id="realtimeClock" style="font-size: 1.8rem; font-weight: 700;">00:00:00</div>
             
             <select id="absensiType">
                 <option value="MASUK">🌅 ABSEN MASUK</option>
                 <option value="PULANG">🌇 ABSEN PULANG</option>
             </select>
 
-            <!-- KAMERA OTOMATIS -->
             <video id="preview"></video>
-            <div id="statusCam" style="font-size: 0.7rem; color: var(--neon-blue);">Mencari Kamera... 🔍</div>
+            <div id="statusCam" style="font-size: 0.7rem; color: var(--neon-blue);">Scanner Ready 🔍</div>
 
             <div class="history-box">
-                <strong style="color: var(--neon-blue);">Riwayat Absensi Kamu 📊</strong>
+                <strong style="color: var(--neon-blue); font-size: 0.8rem;">RIWAYAT ABSENSI 📊</strong>
                 <div id="userLogs" style="margin-top:10px;"></div>
             </div>
             
-            <button onclick="location.reload()" style="background: #334155; color: white; margin-top: 15px;">KELUAR 🚪</button>
+            <button onclick="location.reload()" style="background: #334155; color: white;">LOGOUT 🚪</button>
         </div>
 
-        <!-- SECTION 3: ADMIN PANEL -->
+        <!-- ADMIN PANEL -->
         <div id="adminSection" class="hidden">
-            <h2 style="color: var(--neon-pink);">ADMIN PANEL ⚙️</h2>
-            <div style="text-align: left; margin-bottom: 15px;">
-                <input type="text" id="newStudentUser" placeholder="Username Baru">
-                <input type="password" id="newStudentPass" placeholder="Password Baru">
-                <button onclick="addStudent()">TAMBAH SISWA 👤</button>
-                <button onclick="resetAllLogs()" style="background: var(--neon-pink); color: white;">RESET RIWAYAT ⚠️</button>
-            </div>
+            <h2 style="color: var(--neon-pink); margin:0;">ADMIN PANEL ⚙️</h2>
             
-            <div class="history-box" id="adminUserList">
-                <!-- Daftar Siswa Muncul Disini -->
+            <div class="admin-card">
+                <strong style="font-size: 0.8rem;">TAMBAH SISWA</strong>
+                <input type="text" id="newStudentUser" placeholder="Username" style="margin-top:5px;">
+                <input type="password" id="newStudentPass" placeholder="Password" style="margin-top:5px;">
+                <button onclick="addStudent()" style="margin-top:10px;">SIMPAN SISWA 👤</button>
             </div>
-            <button onclick="location.reload()">KEMBALI</button>
+
+            <div class="admin-card">
+                <strong style="font-size: 0.8rem;">SET STATUS MANUAL</strong>
+                <select id="targetStudent" style="margin-top:5px;"></select>
+                <div class="flex-row" style="margin-top:10px;">
+                    <button onclick="setManualStatus('IZIN')" style="background: var(--warning); color: black;">IZIN 📝</button>
+                    <button onclick="setManualStatus('ALPA')" style="background: #64748b; color: white;">ALPA ❌</button>
+                </div>
+            </div>
+
+            <button onclick="resetAllLogs()" style="background: var(--neon-pink); color: white;">RESET SEMUA RIWAYAT ⚠️</button>
+            <button onclick="location.reload()" style="margin-top:10px; background: #334155; color: white;">KEMBALI</button>
         </div>
     </div>
 
-    <!-- ICON SETTING ADMIN -->
     <div class="admin-btn" onclick="checkAdmin()">⚙️</div>
 
     <script>
         let scanner = null;
         let loggedInUser = "";
 
-        // Inisialisasi Database (LocalStorage agar tidak hilang)
+        // Database Local
         if (!localStorage.getItem('userDB')) {
             localStorage.setItem('userDB', JSON.stringify({ "siswa1": "123" }));
         }
 
-        // Jam Real-time
         setInterval(() => {
             const el = document.getElementById('realtimeClock');
             if(el) el.innerText = new Date().toLocaleTimeString('id-ID');
         }, 1000);
 
-        // Fungsi Login
         function handleLogin() {
             const u = document.getElementById('username').value.toLowerCase().trim();
             const p = document.getElementById('password').value.trim();
@@ -182,36 +207,22 @@
                 document.getElementById('studentSection').classList.remove('hidden');
                 document.getElementById('welcomeMsg').innerText = `Halo, ${u.toUpperCase()}! 👋`;
                 renderUserLogs();
-                startCamera(); // Jalankan kamera otomatis
+                startCamera();
             } else {
-                alert("Login Gagal! Akun tidak ditemukan.");
+                alert("Login Gagal!");
             }
         }
 
-        // Fungsi Kamera Instascan
         function startCamera() {
             scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
-
-            scanner.addListener('scan', function (content) {
-                if (content === "MADYA-PPLG") {
-                    submitAttendance();
-                }
+            scanner.addListener('scan', (content) => {
+                if (content === "MADYA-PPLG") submitAttendance();
             });
-
-            Instascan.Camera.getCameras().then(function (cameras) {
-                if (cameras.length > 0) {
-                    // Coba kamera belakang (indeks terakhir)
-                    scanner.start(cameras[cameras.length - 1]);
-                    document.getElementById('statusCam').innerText = "Kamera Aktif ✅";
-                } else {
-                    document.getElementById('statusCam').innerText = "Kamera tidak ditemukan ❌";
-                }
-            }).catch(function (e) {
-                document.getElementById('statusCam').innerText = "Izin kamera ditolak ❌";
-            });
+            Instascan.Camera.getCameras().then(cameras => {
+                if (cameras.length > 0) scanner.start(cameras[cameras.length - 1]);
+            }).catch(e => alert("Kamera error/tidak diizinkan"));
         }
 
-        // Proses Absensi
         function submitAttendance() {
             const type = document.getElementById('absensiType').value;
             const now = new Date();
@@ -222,93 +233,76 @@
             let sClass = "on-time";
 
             if (type === "MASUK") {
-                const totalMinutes = now.getHours() * 60 + now.getMinutes();
-                if (totalMinutes > (7 * 60 + 10)) { // Lebih dari 07:10
+                if ((now.getHours() * 60 + now.getMinutes()) > (7 * 60 + 10)) {
                     status = "TELAT ⏰";
                     sClass = "late";
                 }
-            } else {
-                status = "PULANG 👋";
-            }
+            } else { status = "PULANG 👋"; }
 
-            let logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
-            
-            // Cek Double Absen
-            if(logs.find(l => l.nama === loggedInUser && l.tgl === tgl && l.tipe === type)) {
-                alert("Kamu sudah absen " + type + " hari ini!");
-                return;
-            }
-
-            logs.push({ nama: loggedInUser, jam: timeStr, tipe: type, status, sClass, tgl });
-            localStorage.setItem('absen_logs', JSON.stringify(logs));
-            
-            alert(`ABSEN ${type} BERHASIL!\nJam: ${timeStr}\nStatus: ${status}`);
-            renderUserLogs();
+            saveLog(loggedInUser, timeStr, type, status, sClass, tgl);
         }
 
-        // Tampilkan Riwayat di Dashboard Siswa
+        function setManualStatus(statusType) {
+            const student = document.getElementById('targetStudent').value;
+            const tgl = new Date().toLocaleDateString('id-ID');
+            let sClass = statusType === 'IZIN' ? 'permission' : 'ALPA';
+            
+            saveLog(student, "--:--", "MANUAL", statusType + " 📝", sClass, tgl);
+            alert(`Siswa ${student} berhasil diset ${statusType}`);
+        }
+
+        function saveLog(nama, jam, tipe, status, sClass, tgl) {
+            let logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
+            if(logs.find(l => l.nama === nama && l.tgl === tgl && l.tipe === tipe)) {
+                alert("Data sudah tercatat hari ini!");
+                return;
+            }
+            logs.push({ nama, jam, tipe, status, sClass, tgl });
+            localStorage.setItem('absen_logs', JSON.stringify(logs));
+            renderUserLogs();
+            if(loggedInUser) alert("Berhasil!");
+        }
+
         function renderUserLogs() {
             const logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
             const container = document.getElementById('userLogs');
             container.innerHTML = logs.filter(l => l.nama === loggedInUser).reverse().map(l => `
-                <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; font-size: 0.75rem;">
-                    [${l.tgl}] <b>${l.tipe}</b> - ${l.jam}
-                    <span class="status-badge ${l.sClass}">${l.status}</span>
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; font-size: 0.7rem;">
+                    [${l.tgl}] <b>${l.tipe}</b> - ${l.jam} <span class="status-badge ${l.sClass}">${l.status}</span>
                 </div>
             `).join('');
         }
 
-        // --- FITUR ADMIN ---
         function checkAdmin() {
-            if (prompt("Masukkan PIN Admin:") === "2024") {
+            if (prompt("PIN Admin:") === "PPLG2026") {
                 if(scanner) scanner.stop();
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('studentSection').classList.add('hidden');
                 document.getElementById('adminSection').classList.remove('hidden');
-                renderAdminUsers();
+                updateAdminStudentList();
             }
         }
 
         function addStudent() {
             const u = document.getElementById('newStudentUser').value.toLowerCase().trim();
             const p = document.getElementById('newStudentPass').value.trim();
-            if(!u || !p) return alert("Isi data dengan lengkap!");
-
+            if(!u || !p) return;
             let db = JSON.parse(localStorage.getItem('userDB'));
             db[u] = p;
             localStorage.setItem('userDB', JSON.stringify(db));
             alert("Siswa Berhasil Ditambahkan!");
-            renderAdminUsers();
+            updateAdminStudentList();
         }
 
-        function deleteUser(u) {
-            if(confirm(`Hapus akun ${u}?`)) {
-                let db = JSON.parse(localStorage.getItem('userDB'));
-                delete db[u];
-                localStorage.setItem('userDB', JSON.stringify(db));
-                renderAdminUsers();
-            }
+        function updateAdminStudentList() {
+            const db = JSON.parse(localStorage.getItem('userDB'));
+            const select = document.getElementById('targetStudent');
+            select.innerHTML = Object.keys(db).map(u => `<option value="${u}">${u.toUpperCase()}</option>`).join('');
         }
 
         function resetAllLogs() {
-            if(confirm("Hapus seluruh riwayat absen?")) {
-                localStorage.setItem('absen_logs', "[]");
-                alert("Riwayat dihapus!");
-                renderUserLogs();
-            }
-        }
-
-        function renderAdminUsers() {
-            const db = JSON.parse(localStorage.getItem('userDB'));
-            const container = document.getElementById('adminUserList');
-            container.innerHTML = "<strong>Daftar Akun:</strong><br><br>" + Object.keys(db).map(user => `
-                <div class="admin-item">
-                    <span>👤 ${user}</span>
-                    <button onclick="deleteUser('${user}')" style="width:auto; padding:5px 10px; background:var(--neon-pink); color:white; font-size:0.6rem; margin:0;">HAPUS</button>
-                </div>
-            `).join('');
+            if(confirm("Hapus semua riwayat?")) localStorage.setItem('absen_logs', "[]");
         }
     </script>
 </body>
 </html>
-
