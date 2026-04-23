@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MADYA DEPOK - PPLG ABSENSI 🚀</title>
+    <title>MADYA DEPOK - ABSEN PPLG 🚀</title>
+    <!-- Library Kamera -->
     <script src="https://rawgit.com"></script>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
@@ -31,7 +32,6 @@
             padding: 20px;
         }
 
-        /* Container Simetris */
         .container {
             width: 100%;
             max-width: 450px;
@@ -40,7 +40,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 30px;
             padding: 30px;
-            box-shadow: 0 0 40px rgba(0, 242, 254, 0.15);
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.2);
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -48,17 +48,17 @@
         }
 
         h1 { font-family: 'Orbitron', sans-serif; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0; font-size: 1.8rem; }
-        .subtitle { font-size: 0.75rem; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
+        .subtitle { font-size: 0.75rem; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
 
         input, select {
             width: 100%;
             padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             color: white;
             outline: none;
-            text-align: center; /* Membuat teks input simetris */
+            text-align: center;
         }
 
         button {
@@ -74,24 +74,26 @@
             text-transform: uppercase;
         }
 
-        button:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--neon-blue); }
+        button:hover { transform: scale(1.02); box-shadow: 0 0 25px var(--neon-blue); }
 
+        /* AREA KAMERA SELALU AKTIF */
         #preview {
             width: 100%;
-            aspect-ratio: 1 / 1; /* Membuat area kamera kotak sempurna */
+            aspect-ratio: 1 / 1;
             object-fit: cover;
             border-radius: 20px;
             border: 2px solid var(--neon-blue);
-            background: #000;
-            box-shadow: 0 0 15px var(--neon-blue);
+            background: #2aff04;
+            box-shadow: 0 0 20px var(--neon-blue);
+            margin: 10px 0;
         }
 
         .history-box {
             text-align: left;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             padding: 15px;
             border-radius: 15px;
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
         }
@@ -119,64 +121,64 @@
             text-align: left;
         }
 
-        .flex-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+        .flex-row { display: flex; gap: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- LOGIN -->
+        <!-- 1. LOGIN SECTION -->
         <div id="loginSection">
             <h1>MADYA DEPOK🏫</h1>
-            <div class="subtitle">PPLG SYSTEM ABSEN</div>
+            <div class="subtitle">PPLG ABSEN SYSTEM</div>
             <input type="text" id="username" placeholder="Username Siswa">
             <input type="password" id="password" placeholder="Password">
             <button onclick="handleLogin()">LOGIN ✨</button>
         </div>
 
-        <!-- DASHBOARD SISWA -->
+        <!-- 2. STUDENT DASHBOARD -->
         <div id="studentSection" class="hidden">
             <h2 id="welcomeMsg" style="color: var(--neon-blue); margin:0;">Halo! 👋</h2>
             <div id="realtimeClock" style="font-size: 1.8rem; font-weight: 700;">00:00:00</div>
             
-            <select id="absensiType">
+            <select id="absensiType" onchange="restartCamera()">
                 <option value="MASUK">🌅 ABSEN MASUK</option>
                 <option value="PULANG">🌇 ABSEN PULANG</option>
             </select>
 
             <video id="preview"></video>
-            <div id="statusCam" style="font-size: 0.7rem; color: var(--neon-blue);">Scanner Ready 🔍</div>
+            <div id="statusCam" style="font-size: 0.7rem; color: var(--neon-blue);">Scanner Active 📡</div>
 
             <div class="history-box">
                 <strong style="color: var(--neon-blue); font-size: 0.8rem;">RIWAYAT ABSENSI 📊</strong>
                 <div id="userLogs" style="margin-top:10px;"></div>
             </div>
             
-            <button onclick="location.reload()" style="background: #334155; color: white;">LOGOUT 🚪</button>
+            <button onclick="logout()" style="background: #334155; color: white;">LOGOUT 🚪</button>
         </div>
 
-        <!-- ADMIN PANEL -->
+        <!-- 3. ADMIN PANEL -->
         <div id="adminSection" class="hidden">
             <h2 style="color: var(--neon-pink); margin:0;">ADMIN PANEL ⚙️</h2>
             
             <div class="admin-card">
-                <strong style="font-size: 0.8rem;">TAMBAH SISWA</strong>
-                <input type="text" id="newStudentUser" placeholder="Username" style="margin-top:5px;">
-                <input type="password" id="newStudentPass" placeholder="Password" style="margin-top:5px;">
-                <button onclick="addStudent()" style="margin-top:10px;">SIMPAN SISWA 👤</button>
+                <strong style="font-size: 0.8rem;">MANAJEMEN SISWA</strong>
+                <input type="text" id="newStudentUser" placeholder="Username" style="margin-top:8px;">
+                <input type="password" id="newStudentPass" placeholder="Password" style="margin-top:8px;">
+                <button onclick="addStudent()" style="margin-top:10px;">SIMPAN AKUN 👤</button>
             </div>
 
             <div class="admin-card">
-                <strong style="font-size: 0.8rem;">SET STATUS MANUAL</strong>
-                <select id="targetStudent" style="margin-top:5px;"></select>
-                <div class="flex-row" style="margin-top:10px;">
+                <strong style="font-size: 0.8rem;">SET STATUS IZIN/ALPA</strong>
+                <select id="targetStudent" style="margin-top:8px;"></select>
+                <div class="flex-row">
                     <button onclick="setManualStatus('IZIN')" style="background: var(--warning); color: black;">IZIN 📝</button>
                     <button onclick="setManualStatus('ALPA')" style="background: #64748b; color: white;">ALPA ❌</button>
                 </div>
             </div>
 
-            <button onclick="resetAllLogs()" style="background: var(--neon-pink); color: white;">RESET SEMUA RIWAYAT ⚠️</button>
-            <button onclick="location.reload()" style="margin-top:10px; background: #334155; color: white;">KEMBALI</button>
+            <button onclick="resetData()" style="background: var(--neon-pink); color: white;">RESET SEMUA DATA ⚠️</button>
+            <button onclick="backFromAdmin()" style="margin-top:10px; background: #334155; color: white;">KEMBALI</button>
         </div>
     </div>
 
@@ -186,11 +188,13 @@
         let scanner = null;
         let loggedInUser = "";
 
-        // Database Local
-        if (!localStorage.getItem('userDB')) {
-            localStorage.setItem('userDB', JSON.stringify({ "siswa1": "123" }));
-        }
+        // DATABASE PERMANEN (LocalStorage)
+        const loadDB = () => JSON.parse(localStorage.getItem('userDB')) || { "admin": "admin123" };
+        const saveDB = (db) => localStorage.setItem('userDB', JSON.stringify(db));
+        const loadLogs = () => JSON.parse(localStorage.getItem('absen_logs')) || [];
+        const saveLogs = (logs) => localStorage.setItem('absen_logs', JSON.stringify(logs));
 
+        // Jam Real-time
         setInterval(() => {
             const el = document.getElementById('realtimeClock');
             if(el) el.innerText = new Date().toLocaleTimeString('id-ID');
@@ -199,7 +203,7 @@
         function handleLogin() {
             const u = document.getElementById('username').value.toLowerCase().trim();
             const p = document.getElementById('password').value.trim();
-            const db = JSON.parse(localStorage.getItem('userDB'));
+            const db = loadDB();
 
             if (db[u] && db[u] === p) {
                 loggedInUser = u;
@@ -209,18 +213,34 @@
                 renderUserLogs();
                 startCamera();
             } else {
-                alert("Login Gagal!");
+                alert("Username/Password tidak ditemukan!");
             }
         }
 
+        // FUNGSI KAMERA SELALU AKTIF
         function startCamera() {
+            if (scanner) { scanner.stop(); }
+            
             scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
+            
             scanner.addListener('scan', (content) => {
-                if (content === "MADYA-PPLG") submitAttendance();
+                if (content === "MADYA-PPLG") {
+                    submitAttendance();
+                }
             });
+
             Instascan.Camera.getCameras().then(cameras => {
-                if (cameras.length > 0) scanner.start(cameras[cameras.length - 1]);
-            }).catch(e => alert("Kamera error/tidak diizinkan"));
+                if (cameras.length > 0) {
+                    // Selalu pilih kamera belakang (index terakhir)
+                    scanner.start(cameras[cameras.length - 1]);
+                } else {
+                    document.getElementById('statusCam').innerText = "Kamera tidak terdeteksi!";
+                }
+            }).catch(e => console.error("Kamera Error:", e));
+        }
+
+        function restartCamera() {
+            startCamera(); // Re-trigger kamera saat ganti tipe absen
         }
 
         function submitAttendance() {
@@ -233,38 +253,40 @@
             let sClass = "on-time";
 
             if (type === "MASUK") {
-                if ((now.getHours() * 60 + now.getMinutes()) > (7 * 60 + 10)) {
+                const totalMin = now.getHours() * 60 + now.getMinutes();
+                if (totalMin > (7 * 60 + 10)) { // 07:10
                     status = "TELAT ⏰";
                     sClass = "late";
                 }
             } else { status = "PULANG 👋"; }
 
-            saveLog(loggedInUser, timeStr, type, status, sClass, tgl);
+            processLog(loggedInUser, timeStr, type, status, sClass, tgl);
         }
 
         function setManualStatus(statusType) {
             const student = document.getElementById('targetStudent').value;
             const tgl = new Date().toLocaleDateString('id-ID');
-            let sClass = statusType === 'IZIN' ? 'permission' : 'ALPA';
+            const sClass = statusType === 'IZIN' ? 'permission' : 'alpa';
             
-            saveLog(student, "--:--", "MANUAL", statusType + " 📝", sClass, tgl);
-            alert(`Siswa ${student} berhasil diset ${statusType}`);
+            processLog(student, "--:--", "MANUAL", statusType + " 📝", sClass, tgl);
+            alert(`Siswa ${student.toUpperCase()} diset ${statusType}`);
         }
 
-        function saveLog(nama, jam, tipe, status, sClass, tgl) {
-            let logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
+        function processLog(nama, jam, tipe, status, sClass, tgl) {
+            let logs = loadLogs();
+            // Cek duplikasi di hari yang sama
             if(logs.find(l => l.nama === nama && l.tgl === tgl && l.tipe === tipe)) {
-                alert("Data sudah tercatat hari ini!");
+                alert("Data sudah tersimpan untuk hari ini!");
                 return;
             }
             logs.push({ nama, jam, tipe, status, sClass, tgl });
-            localStorage.setItem('absen_logs', JSON.stringify(logs));
+            saveLogs(logs);
             renderUserLogs();
-            if(loggedInUser) alert("Berhasil!");
+            if(loggedInUser) alert("Absen Berhasil Disimpan! ✅");
         }
 
         function renderUserLogs() {
-            const logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
+            const logs = loadLogs();
             const container = document.getElementById('userLogs');
             container.innerHTML = logs.filter(l => l.nama === loggedInUser).reverse().map(l => `
                 <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; font-size: 0.7rem;">
@@ -273,8 +295,10 @@
             `).join('');
         }
 
+        // --- ADMIN AREA ---
         function checkAdmin() {
-            if (prompt("PIN Admin:") === "PPLG2026") {
+            const pin = prompt("PIN Admin:");
+            if (pin === "PPLG2026") {
                 if(scanner) scanner.stop();
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('studentSection').classList.add('hidden');
@@ -287,22 +311,29 @@
             const u = document.getElementById('newStudentUser').value.toLowerCase().trim();
             const p = document.getElementById('newStudentPass').value.trim();
             if(!u || !p) return;
-            let db = JSON.parse(localStorage.getItem('userDB'));
+            let db = loadDB();
             db[u] = p;
-            localStorage.setItem('userDB', JSON.stringify(db));
-            alert("Siswa Berhasil Ditambahkan!");
+            saveDB(db);
+            alert("Akun Siswa Tersimpan Permanen!");
             updateAdminStudentList();
         }
 
         function updateAdminStudentList() {
-            const db = JSON.parse(localStorage.getItem('userDB'));
+            const db = loadDB();
             const select = document.getElementById('targetStudent');
             select.innerHTML = Object.keys(db).map(u => `<option value="${u}">${u.toUpperCase()}</option>`).join('');
         }
 
-        function resetAllLogs() {
-            if(confirm("Hapus semua riwayat?")) localStorage.setItem('absen_logs', "[]");
+        function resetData() {
+            if(confirm("PERINGATAN! Ini akan menghapus SEMUA akun & riwayat. Lanjut?")) {
+                localStorage.clear();
+                alert("Data bersih! Halaman akan dimuat ulang.");
+                location.reload();
+            }
         }
+
+        function logout() { location.reload(); }
+        function backFromAdmin() { location.reload(); }
     </script>
 </body>
 </html>
