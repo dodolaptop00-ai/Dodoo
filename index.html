@@ -3,196 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DodooStore - Pembayaran QRIS</title>
+    <title>MADYA DEPOK - PPLG ABSENSI 🚀</title>
+    <!-- Library Kamera Paling Stabil -->
+    <script src="https://rawgit.com"></script>
+    <link href="https://googleapis.com" rel="stylesheet">
     <style>
-        :root { --primary: #25d366; --orange: #e67e22; --blue: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .container { width: 100%; max-width: 450px; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; padding: 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header b { font-size: 24px; color: var(--orange); }
-        
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #555; }
-        select, input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
-        .method-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .method-box div { border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 10px; font-weight: bold; }
-        .method-box div.active { border-color: var(--blue); background: #ebf5fb; color: var(--blue); }
+        :root {
+            --neon-blue: #00f2fe;
+            --neon-pink: #f43f5e;
+            --dark-bg: #030712;
+            --glass: rgba(255, 255, 255, 0.05);
+            --success: #10b981;
+        }
 
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; background: var(--primary); font-size: 16px; margin-bottom: 10px; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--dark-bg);
+            background-image: radial-gradient(circle at 50% -20%, #1e293b, #030712);
+            color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.2);
+            text-align: center;
+            animation: glow 3s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(0, 242, 254, 0.1); }
+            to { box-shadow: 0 0 40px rgba(0, 242, 254, 0.3); }
+        }
+
+        h1 { font-family: 'Orbitron', sans-serif; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0; }
+        .subtitle { font-size: 0.8rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 20px; text-transform: uppercase; }
+
+        input, select {
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.5);
+            color: white; outline: none; font-family: 'Poppins';
+        }
+
+        button {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            color: #000; font-weight: 800; cursor: pointer; transition: 0.3s;
+            margin-top: 10px; text-transform: uppercase;
+        }
+
+        button:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--neon-blue); }
+
+        /* DESIGN KAMERA MENYALA */
+        #preview {
+            width: 100%; 
+            border-radius: 20px; 
+            border: 2px solid var(--neon-blue); 
+            background: #000; 
+            margin: 15px 0;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .history-box {
+            text-align: left; margin-top: 20px; background: rgba(0,0,0,0.4);
+            padding: 15px; border-radius: 15px; max-height: 200px; overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; float: right; }
+        .late { background: var(--neon-pink); text-shadow: 0 0 5px white; }
+        .on-time { background: var(--success); text-shadow: 0 0 5px white; }
+
+        .admin-btn {
+            position: fixed; bottom: 20px; right: 20px; background: rgba(0, 242, 254, 0.1);
+            width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center;
+            align-items: center; cursor: pointer; border: 1px solid var(--neon-blue); z-index: 1000;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .hidden { display: none !important; }
         
-        #payment-modal { border: 2px solid #ddd; padding: 15px; background: #fff; margin-top: 20px; text-align: center; border-radius: 10px; display: none; }
-        .qris-img { width: 200px; height: 200px; margin: 10px auto; background: #eee; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; }
-        
-        .btn-direct { background: #008cff !important; display: none; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        .admin-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; 
+            margin-bottom: 8px; font-size: 0.8rem; border-left: 3px solid var(--neon-blue);
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <b>🛍️ DodooStore</b><br>
-        <small>Top-Up Game & Bayar Instan</small>
-    </div>
-
-    <!-- NOMOR ADMIN WHATSAPP -->
-    <input type="hidden" id="admin-phone" value="6285860612529">
-
-    <label>ID Player:</label>
-    <input type="text" id="player-id" placeholder="ID + (Server)">
-
-    <label>Pilih Game:</label>
-    <select id="game-select" onchange="updateOptions()">
-        <option value="Free Fire">Free Fire 💎</option>
-        <option value="Mobile Legends">Mobile Legends ⚡</option>
-        <option value="PUBG Mobile">PUBG Mobile 💵</option>
-        <option value="Genshin Impact">Genshin Impact ✨</option>
-        <option value="Valorant">Valorant 🔫</option>
-        <option value="CODM">Call of Duty Mobile 💣</option>
-        <option value="eFootball">eFootball Coins ⚽</option>
-    </select>
-
-    <label>Pilih Nominal:</label>
-    <select id="package-select"></select>
-
-    <label>Metode Pembayaran:</label>
-    <div class="method-box" id="pay-methods">
-        <div class="active" onclick="selectMethod(this, 'QRIS ALL PAYMENT')">QRIS</div>
-        <div onclick="selectMethod(this, 'DANA')">DANA</div>
-        <div onclick="selectMethod(this, 'GOPAY')">GOPAY</div>
-    </div>
-    <input type="hidden" id="selected-method" value="QRIS ALL PAYMENT">
-
-    <button onclick="buyProcess()">KONFIRMASI PESANAN</button>
-    
-    <div id="payment-modal">
-        <h4 style="margin:0; color:var(--orange);">Selesaikan Pembayaran</h4>
-        <p id="pay-instr" style="font-size: 12px; color: #666;"></p>
-        
-        <button id="pay-direct-btn" class="btn-direct" onclick="openEwallet()">KLIK TRANSFER OTOMATIS</button>
-
-        <div class="qris-img" id="qris-area">
-            <img src="https://qrserver.com" alt="QRIS" style="width:100%">
-        </div>
-        
-        <div style="font-size: 14px; margin-bottom: 10px;">
-            Total Bayar: <b id="pay-total" style="color:var(--orange);"></b>
+    <div class="container">
+        <!-- SECTION 1: LOGIN -->
+        <div id="loginSection">
+            <h1>MADYA 🏫</h1>
+            <div class="subtitle">PPLG DEPOK SYSTEM 💻</div>
+            <input type="text" id="username" placeholder="Username Siswa">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleLogin()">MASUK ✨</button>
         </div>
 
-        <button onclick="sendToWA()" style="background: var(--blue);">SUDAH BAYAR (KIRIM BUKTI)</button>
-        <small style="font-size: 10px; color: #999; display: block;">Setelah bayar, kirim bukti ke WhatsApp admin</small>
+        <!-- SECTION 2: STUDENT DASHBOARD -->
+        <div id="studentSection" class="hidden">
+            <h2 id="welcomeMsg" style="color: var(--neon-blue);">Halo! 👋</h2>
+            <div id="realtimeClock" style="font-size: 1.8rem; font-weight: bold; color: white; text-shadow: 0 0 10px var(--neon-blue);">00:00:00</div>
+            
+            <select id="absensiType">
+                <option value="MASUK">🌅 ABSEN MASUK</option>
+                <option value="PULANG">🌇 ABSEN PULANG</option>
+            </select>
+
+            <!-- KAMERA OTOMATIS -->
+            <video id="preview"></video>
+            <div id="statusCam" style="font-size: 0.7rem; color: var(--neon-blue);">Mencari Kamera... 🔍</div>
+
+            <div class="history-box">
+                <strong style="color: var(--neon-blue);">Riwayat Absensi Kamu 📊</strong>
+                <div id="userLogs" style="margin-top:10px;"></div>
+            </div>
+            
+            <button onclick="location.reload()" style="background: #334155; color: white; margin-top: 15px;">KELUAR 🚪</button>
+        </div>
+
+        <!-- SECTION 3: ADMIN PANEL -->
+        <div id="adminSection" class="hidden">
+            <h2 style="color: var(--neon-pink);">ADMIN PANEL ⚙️</h2>
+            <div style="text-align: left; margin-bottom: 15px;">
+                <input type="text" id="newStudentUser" placeholder="Username Baru">
+                <input type="password" id="newStudentPass" placeholder="Password Baru">
+                <button onclick="addStudent()">TAMBAH SISWA 👤</button>
+                <button onclick="resetAllLogs()" style="background: var(--neon-pink); color: white;">RESET RIWAYAT ⚠️</button>
+            </div>
+            
+            <div class="history-box" id="adminUserList">
+                <!-- Daftar Siswa Muncul Disini -->
+            </div>
+            <button onclick="location.reload()">KEMBALI</button>
+        </div>
     </div>
-</div>
 
-<script>
-    const diamondData = {
-        "Free Fire": [
-            {n:"50 Diamond", p:8000}, {n:"70 Diamond", p:10000}, {n:"140 Diamond", p:20000}, {n:"355 Diamond", p:50000}, {n:"720 Diamond", p:100000}, {n:"1440 Diamond", p:200000}
-        ],
-        "Mobile Legends": [
-            {n:"85 Diamonds", p:23000}, {n:"170 Diamonds", p:45000}, {n:"296 Diamonds", p:80000}, {n:"568 Diamonds", p:150000}, {n:"875 Diamonds", p:235000}, {n:"Weekly Pass", p:30000}
-        ],
-        "PUBG Mobile": [
-            {n:"60 UC", p:15000}, {n:"325 UC", p:75000}, {n:"660 UC", p:150000}, {n:"1800 UC", p:360000}
-        ],
-        "Genshin Impact": [
-            {n:"Blessing", p:79000}, {n:"300 Crystals", p:79000}, {n:"980 Crystals", p:245000}, {n:"1980 Crystals", p:475000}
-        ],
-        "Valorant": [
-            {n:"625 Points", p:75000}, {n:"1125 Points", p:135000}, {n:"1650 Points", p:195000}, {n:"3400 Points", p:390000}
-        ],
-        "CODM": [
-            {n:"31 CP", p:5000}, {n:"63 CP", p:10000}, {n:"128 CP", p:20000}, {n:"321 CP", p:50000}, {n:"645 CP", p:100000}
-        ],
-        "eFootball": [
-            {n:"100 Coins", p:15000}, {n:"550 Coins", p:79000}, {n:"1040 Coins", p:149000}, {n:"2130 Coins", p:299000}
-        ]
-    };
+    <!-- ICON SETTING ADMIN -->
+    <div class="admin-btn" onclick="checkAdmin()">⚙️</div>
 
-    let currentOrder = null;
+    <script>
+        let scanner = null;
+        let loggedInUser = "";
 
-    function updateOptions() {
-        const game = document.getElementById('game-select').value;
-        const select = document.getElementById('package-select');
-        select.innerHTML = diamondData[game].map(d => `<option value="${d.p}">${d.n} - Rp ${d.p.toLocaleString()}</option>`).join('');
-    }
-
-    function selectMethod(el, val) {
-        document.querySelectorAll('.method-box div').forEach(d => d.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('selected-method').value = val;
-    }
-
-    function buyProcess() {
-        const id = document.getElementById('player-id').value;
-        if (!id) return alert("ID Player wajib diisi!");
-
-        const pkg = document.getElementById('package-select');
-        const price = parseInt(pkg.value); 
-        const method = document.getElementById('selected-method').value;
-
-        currentOrder = { 
-            id, game: document.getElementById('game-select').value, item: pkg.options[pkg.selectedIndex].text.split(' - '), 
-            price, method, time: new Date().toLocaleString() 
-        };
-
-        const modal = document.getElementById('payment-modal');
-        const qrisArea = document.getElementById('qris-area');
-        const directBtn = document.getElementById('pay-direct-btn');
-        const instrText = document.getElementById('pay-instr');
-
-        modal.style.display = 'block';
-        document.getElementById('pay-total').innerText = "Rp " + price.toLocaleString();
-        
-        if(method === 'QRIS ALL PAYMENT') {
-            qrisArea.style.display = 'block';
-            directBtn.style.display = 'none';
-            instrText.innerText = "Silahkan scan QRIS untuk menyelesaikan pembayaran.";
-        } else {
-            qrisArea.style.display = 'none';
-            directBtn.style.display = 'block';
-            instrText.innerText = "Klik tombol di bawah untuk bayar ke nomor 085860612529";
+        // Inisialisasi Database (LocalStorage agar tidak hilang)
+        if (!localStorage.getItem('userDB')) {
+            localStorage.setItem('userDB', JSON.stringify({ "siswa1": "123" }));
         }
 
-        window.scrollTo(0, document.body.scrollHeight);
-    }
+        // Jam Real-time
+        setInterval(() => {
+            const el = document.getElementById('realtimeClock');
+            if(el) el.innerText = new Date().toLocaleTimeString('id-ID');
+        }, 1000);
 
-    function openEwallet() {
-        const adminPhone = "085860612529";
-        const amount = currentOrder.price;
-        const method = currentOrder.method;
+        // Fungsi Login
+        function handleLogin() {
+            const u = document.getElementById('username').value.toLowerCase().trim();
+            const p = document.getElementById('password').value.trim();
+            const db = JSON.parse(localStorage.getItem('userDB'));
 
-        // Salin nomor otomatis agar user tidak ribet
-        navigator.clipboard.writeText(adminPhone);
-        
-        if(method === 'DANA') {
-            alert("Nomor HP telah disalin otomatis. Kamu akan diarahkan ke aplikasi DANA.");
-            window.location.href = `https://dana.id/0858606112529&amount=${amount}`;
-        } else if(method === 'GOPAY') {
-            alert("Nomor HP telah disalin otomatis. Silahkan buka aplikasi Gojek, pilih Bayar, lalu tempel nomor admin.");
-            window.location.href = "gojek://gopay/transfer"; // Deep link untuk buka menu transfer GoPay
+            if (db[u] && db[u] === p) {
+                loggedInUser = u;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('studentSection').classList.remove('hidden');
+                document.getElementById('welcomeMsg').innerText = `Halo, ${u.toUpperCase()}! 👋`;
+                renderUserLogs();
+                startCamera(); // Jalankan kamera otomatis
+            } else {
+                alert("Login Gagal! Akun tidak ditemukan.");
+            }
         }
-    }
 
-    function sendToWA() {
-        const adminPhone = document.getElementById('admin-phone').value;
-        const o = currentOrder;
+        // Fungsi Kamera Instascan
+        function startCamera() {
+            scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
 
-        const pesanWA = `*KONFIRMASI BAYAR - DODOOSTORE*%0A` +
-                        `--------------------------%0A` +
-                        `*Game:* ${o.game}%0A` +
-                        `*Item:* ${o.item}%0A` +
-                        `*ID Player:* ${o.id}%0A` +
-                        `*Metode:* ${o.method}%0A` +
-                        `*Total:* Rp ${o.price.toLocaleString()}%0A` +
-                        `--------------------------%0A` +
-                        `_Saya sudah bayar, mohon segera diproses!_`;
+            scanner.addListener('scan', function (content) {
+                if (content === "MADYA-PPLG") {
+                    submitAttendance();
+                }
+            });
 
-        window.open(`https://wa.me/6285860612529?text=${pesanWA}`, '_blank');
-    }
+            Instascan.Camera.getCameras().then(function (cameras) {
+                if (cameras.length > 0) {
+                    // Coba kamera belakang (indeks terakhir)
+                    scanner.start(cameras[cameras.length - 1]);
+                    document.getElementById('statusCam').innerText = "Kamera Aktif ✅";
+                } else {
+                    document.getElementById('statusCam').innerText = "Kamera tidak ditemukan ❌";
+                }
+            }).catch(function (e) {
+                document.getElementById('statusCam').innerText = "Izin kamera ditolak ❌";
+            });
+        }
 
-    updateOptions();
-</script>
+        // Proses Absensi
+        function submitAttendance() {
+            const type = document.getElementById('absensiType').value;
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const tgl = now.toLocaleDateString('id-ID');
+            
+            let status = "TEPAT WAKTU ✅";
+            let sClass = "on-time";
 
+            if (type === "MASUK") {
+                const totalMinutes = now.getHours() * 60 + now.getMinutes();
+                if (totalMinutes > (7 * 60 + 10)) { // Lebih dari 07:10
+                    status = "TELAT ⏰";
+                    sClass = "late";
+                }
+            } else {
+                status = "PULANG 👋";
+            }
+
+            let logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
+            
+            // Cek Double Absen
+            if(logs.find(l => l.nama === loggedInUser && l.tgl === tgl && l.tipe === type)) {
+                alert("Kamu sudah absen " + type + " hari ini!");
+                return;
+            }
+
+            logs.push({ nama: loggedInUser, jam: timeStr, tipe: type, status, sClass, tgl });
+            localStorage.setItem('absen_logs', JSON.stringify(logs));
+            
+            alert(`ABSEN ${type} BERHASIL!\nJam: ${timeStr}\nStatus: ${status}`);
+            renderUserLogs();
+        }
+
+        // Tampilkan Riwayat di Dashboard Siswa
+        function renderUserLogs() {
+            const logs = JSON.parse(localStorage.getItem('absen_logs') || "[]");
+            const container = document.getElementById('userLogs');
+            container.innerHTML = logs.filter(l => l.nama === loggedInUser).reverse().map(l => `
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; font-size: 0.75rem;">
+                    [${l.tgl}] <b>${l.tipe}</b> - ${l.jam}
+                    <span class="status-badge ${l.sClass}">${l.status}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- FITUR ADMIN ---
+        function checkAdmin() {
+            if (prompt("Masukkan PIN Admin:") === "2024") {
+                if(scanner) scanner.stop();
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('studentSection').classList.add('hidden');
+                document.getElementById('adminSection').classList.remove('hidden');
+                renderAdminUsers();
+            }
+        }
+
+        function addStudent() {
+            const u = document.getElementById('newStudentUser').value.toLowerCase().trim();
+            const p = document.getElementById('newStudentPass').value.trim();
+            if(!u || !p) return alert("Isi data dengan lengkap!");
+
+            let db = JSON.parse(localStorage.getItem('userDB'));
+            db[u] = p;
+            localStorage.setItem('userDB', JSON.stringify(db));
+            alert("Siswa Berhasil Ditambahkan!");
+            renderAdminUsers();
+        }
+
+        function deleteUser(u) {
+            if(confirm(`Hapus akun ${u}?`)) {
+                let db = JSON.parse(localStorage.getItem('userDB'));
+                delete db[u];
+                localStorage.setItem('userDB', JSON.stringify(db));
+                renderAdminUsers();
+            }
+        }
+
+        function resetAllLogs() {
+            if(confirm("Hapus seluruh riwayat absen?")) {
+                localStorage.setItem('absen_logs', "[]");
+                alert("Riwayat dihapus!");
+                renderUserLogs();
+            }
+        }
+
+        function renderAdminUsers() {
+            const db = JSON.parse(localStorage.getItem('userDB'));
+            const container = document.getElementById('adminUserList');
+            container.innerHTML = "<strong>Daftar Akun:</strong><br><br>" + Object.keys(db).map(user => `
+                <div class="admin-item">
+                    <span>👤 ${user}</span>
+                    <button onclick="deleteUser('${user}')" style="width:auto; padding:5px 10px; background:var(--neon-pink); color:white; font-size:0.6rem; margin:0;">HAPUS</button>
+                </div>
+            `).join('');
+        }
+    </script>
 </body>
 </html>
+
