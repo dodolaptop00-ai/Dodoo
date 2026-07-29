@@ -1,133 +1,81 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pemesanan Tiket Pesawat</title>
-    <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 500px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: auto; }
-        h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
-        #hasil { margin-top: 20px; padding: 15px; border: 1px dashed #333; background: #fffde7; display: none; white-space: pre-wrap; font-family: monospace; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2>Projek Tiket Pesawat</h2>
-    
-    <div class="form-group">
-        <label>Nama Penumpang:</label>
-        <input type="text" id="nama" placeholder="Masukkan nama">
-    </div>
-
-    <div class="form-group">
-        <label>Pilih Maskapai:</label>
-        <select id="maskapai">
-            <option value="Garuda Indonesia">Garuda Indonesia</option>
-            <option value="Lion Air">Lion Air</option>
-            <option value="Batik Air">Batik Air</option>
-            <option value="Citilink">Citilink</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Pilih Tujuan:</label>
-        <select id="tujuan">
-            <option value="Jakarta">Jakarta - Rp 500.000</option>
-            <option value="Bali">Bali - Rp 1.000.000</option>
-            <option value="Leuwinanggung">Leuwinanggung - Rp 700.000</option>
-            <option value="Depok">Depok - Rp 1.200.000</option>
-            <option value="Madep">Madep - Rp 1.300.000</option>
-            <option value="Sanding">Sanding - Rp 600.000</option>
-            <option value="Cibubur">Cibubur - Rp 1.100.000</option>
-            <option value="Legenda">Legenda - Rp 900.000</option>
-            <option value="Metland">Metland - Rp 1.500.000</option>
-            <option value="Gunung putri">Gunung putri - Rp 2.000.000</option>
-            <option value="Tapos">Tapos - Rp 450.000</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Pilih Kelas:</label>
-        <select id="kelas">
-            <option value="Economy">Economy</option>
-            <option value="Business">Business (+200rb)</option>
-            <option value="First Class">First Class (+700rb)</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Jumlah Tiket:</label>
-        <input type="number" id="jumlah" value="1" min="1">
-    </div>
-
-    <button onclick="hitungTiket()">Cetak Tiket</button>
-
-    <div id="hasil"></div>
-</div>
-
-<script>
-function hitungTiket() {
-    const nama = document.getElementById('nama').value;
-    const maskapai = document.getElementById('maskapai').value;
-    const tujuan = document.getElementById('tujuan').value;
-    const kelas = document.getElementById('kelas').value;
-    const jumlah = parseInt(document.getElementById('jumlah').value);
-
-    if (!nama) {
-        alert("Harap masukkan nama penumpang!");
-        return;
-    }
-
-    // Logika Harga Dasar
-    let harga = 0;
-    const daftarHarga = {
-        "Jakarta": 500000, "Bali": 1000000, "Leuwinanggung": 700000,
-        "Depok": 1200000, "Madep": 1300000, "Sanding": 600000,
-        "Cibubur": 1100000, "Legenda": 900000, "Metland": 1500000,
-        "Gunung putri": 2000000, "Tapos": 450000
-    };
-    harga = daftarHarga[tujuan];
-
-    // Logika Tambahan Kelas
-    let tambahanKelas = 0;
-    if (kelas === "Business") tambahanKelas = 200000;
-    else if (kelas === "First Class") tambahanKelas = 700000;
-
-    // Hitung Total
-    let totalAwal = (harga + tambahanKelas) * jumlah;
-    let diskon = 0;
-    if (totalAwal >= 2000000) {
-        diskon = totalAwal * 0.1;
-    }
-    let totalBayar = totalAwal - diskon;
-
-    // Format Rupiah
-    const formatRp = (angka) => "Rp " + angka.toLocaleString('id-ID');
-
-    // Tampilkan Hasil
-    const hasilDiv = document.getElementById('hasil');
-    hasilDiv.style.display = 'block';
-    hasilDiv.innerText = `--- DETAIL TIKET ---
-Nama Penumpang  : ${nama}
-Maskapai        : ${maskapai}
-Tujuan          : ${tujuan}
-Kelas           : ${kelas}
-Jumlah Tiket    : ${jumlah}
---------------------
-Harga Dasar     : ${formatRp(harga)}
-Total Harga     : ${formatRp(totalAwal)}
-Diskon (10%)    : ${formatRp(diskon)}
-Total Bayar     : ${formatRp(totalBayar)}`;
+<style>
+.promo{
+    max-width:1100px;
+    margin:80px auto;
+    padding:40px;
+    background:#1e293b;
+    border-radius:20px;
+    text-align:center;
+    border:1px solid rgba(56,189,248,.2);
 }
-</script>
 
-</body>
-</html>
+.promo h2{
+    color:#38bdf8;
+    margin-bottom:20px;
+    font-size:36px;
+}
 
+.promo h3{
+    margin-top:35px;
+    color:#fff;
+}
+
+.promo p{
+    color:#cbd5e1;
+    line-height:1.8;
+    margin:20px 0;
+}
+
+.promo-buttons{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-top:25px;
+}
+
+.promo-btn{
+    background:#38bdf8;
+    color:white;
+    text-decoration:none;
+    padding:15px 28px;
+    border-radius:12px;
+    transition:.3s;
+    font-weight:bold;
+}
+
+.promo-btn:hover{
+    transform:translateY(-4px);
+    box-shadow:0 0 20px rgba(56,189,248,.5);
+}
+
+</style>
+<section class="promo">
+    <h2>🚀 Tingkatkan Bisnis & Project Anda Sekarang!</h2>
+
+    <p>
+        Butuh website yang modern, cepat, dan profesional?
+        Kami siap membantu mewujudkan ide Anda menjadi website yang menarik,
+        responsif, dan siap digunakan. Mulai dari Landing Page, Website Bisnis,
+        Portofolio, HTML, Python, hingga berbagai kebutuhan coding lainnya.
+    </p>
+
+    <p>
+        ✔ Pengerjaan Cepat<br>
+        ✔ Desain Modern & Responsive<br>
+        ✔ Harga Terjangkau<br>
+        ✔ Revisi Sesuai Kesepakatan<br>
+        ✔ Support Setelah Project Selesai
+    </p>
+
+    <h3>🔥 Produk & Website Kami</h3>
+
+    <div class="promo-buttons">
+
+        <!-- GANTI LINK DIBAWAH -->
+        <a href="https://dodokerenbet3-blip.github.io/dodoo/" target="_blank" class="promo-btn">
+            🌐 Website Utama
+        </a>
+
+    </div>
+</section>
